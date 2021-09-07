@@ -15,22 +15,9 @@
 		<dependency>
 			<groupId>org.openziti</groupId>
 			<artifactId>ziti</artifactId>
-			<version>0.22.2</version>
+			<version>0.22.5-dirty-SNAPSHOT</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.slf4j</groupId> -->
-<!-- 			<artifactId>slf4j-log4j12</artifactId> -->
-<!-- 			<version>1.7.32</version> -->
-<!-- 		</dependency> -->
-
-		<!-- <dependency> -->
-		<!-- <groupId>org.postgresql</groupId> -->
-		<!-- <artifactId>postgresql</artifactId> -->
-		<!-- <version>42.2.23</version> -->
-		<!-- </dependency> -->
 	</dependencies>
-<!--
 	<build>
 		<resources>
 			<resource>
@@ -41,32 +28,5 @@
 				<targetPath>META-INF/services</targetPath>
 			</resource>
 		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.4</version>
-				<configuration>
-					<excludeScope>system</excludeScope>
-					<excludes>META-INF/*.SF</excludes>
-					<excludes>META-INF/*.DSA</excludes>
-					<excludes>META-INF/*.RSA</excludes>
-					<artifactSet>
-						<excludes>
-							<exclude>org.openziti.jdbc:ziti-jdbc-wrapper</exclude>
-						</excludes>
-					</artifactSet>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 	</build>
--->
 </project>
