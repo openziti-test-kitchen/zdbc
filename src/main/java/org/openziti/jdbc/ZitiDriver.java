@@ -22,7 +22,7 @@ import org.openziti.Ziti;
 
 public class ZitiDriver implements java.sql.Driver {
   private static final Logger log = Logger.getLogger(ZitiDriver.class.getName());
-  
+
   private static ZitiDriver registeredDriver;
   private static Set<String> zitiConfigs = new HashSet<>();
   private static Set<BaseZitiDriverShim> configuredShims = new HashSet<>();
@@ -58,12 +58,12 @@ public class ZitiDriver implements java.sql.Driver {
 
     // Throws a SQLException if a shim could not be found or configured
     BaseZitiDriverShim shim = mgr.getShim(url).orElseGet(() -> registerShim(info));
-    
+
     parseUrl(url, info);
     shim.configureDriverProperties(info);
-    
+
     setupZiti(shim, info);
-    
+
     // Replace zdbc with jdbc so shim drivers know how to connect
     String dbUrl = url.replaceFirst("zdbc", "jdbc");
 
@@ -78,32 +78,61 @@ public class ZitiDriver implements java.sql.Driver {
   @Override
   public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
 
-    String dbUrl = url.replaceFirst("zdbc", "jdbc");
-
-    // Throws a SQL Exception if a shim could not be found or created
-    BaseZitiDriverShim shim = mgr.getShim(url).orElse(registerShim(info));
-
-    DriverPropertyInfo identityFile = new DriverPropertyInfo(ZITI_JSON, "Ziti identity file");
+    DriverPropertyInfo identityFile = new DriverPropertyInfo(ZITI_JSON, "/path/to/identity.json");
     identityFile.description = "Ziti identify file to use for the connection";
     identityFile.required = false;
 
-    DriverPropertyInfo keystoreFile = new DriverPropertyInfo(ZITI_KEYSTORE, "Keystore containing one or more Ziti identities");
+    DriverPropertyInfo keystoreFile = new DriverPropertyInfo(ZITI_KEYSTORE, "/path/to/keystore");
     keystoreFile.description = "Keystore containing one or more Ziti identities";
     keystoreFile.required = false;
 
-    DriverPropertyInfo keystorePassword = new DriverPropertyInfo(ZITI_KEYSTORE_PASSWORD, "Ziti keystore password");
+    DriverPropertyInfo keystorePassword = new DriverPropertyInfo(ZITI_KEYSTORE_PASSWORD, "secretPassword");
     keystorePassword.description = "Password for the Ziti keystore";
     keystorePassword.required = false;
 
-    DriverPropertyInfo[] props = shim.getDelegate().getPropertyInfo(dbUrl, info);
-    
-    DriverPropertyInfo[] result = new DriverPropertyInfo[props.length + 3];
-    result[0] = identityFile;
-    result[1] = keystoreFile;
-    result[2] = keystorePassword;
-    System.arraycopy(props, 0, result, 3, props.length);
+    try {
+      // Throws a SQL Exception if a shim could not be found or created
+      BaseZitiDriverShim shim = mgr.getShim(url).orElseGet(() -> registerShim(info));
 
-    return result;
+      String dbUrl = url.replaceFirst("zdbc", "jdbc");
+
+      DriverPropertyInfo[] props = shim.getDelegate().getPropertyInfo(dbUrl, info);
+
+      DriverPropertyInfo[] result = new DriverPropertyInfo[props.length + 3];
+      result[0] = identityFile;
+      result[1] = keystoreFile;
+      result[2] = keystorePassword;
+      System.arraycopy(props, 0, result, 3, props.length);
+
+      return result;
+    } catch (ShimException e) {
+      // No shim could be found, and no shim could be registered. Return the basic properties to define a
+      // shim
+
+      log.fine("Ziti driver could not find a shim for url: " + url + ".  Returning basic properties.");
+      
+      DriverPropertyInfo driverUrlPattern = new DriverPropertyInfo(ZITI_DRIVER_URL_PATTERN, "^zdbc:<database>.*");
+      identityFile.description = "Regular expression used to identify the jdbc URL for this driver";
+      identityFile.required = true;
+
+      DriverPropertyInfo driverClassName = new DriverPropertyInfo(ZITI_DRIVER_CLASSNAME, "org.jdbc.Driver");
+      keystoreFile.description = "The JDBC driver to delegate to";
+      keystoreFile.required = true;
+
+      DriverPropertyInfo zitiFeatures = new DriverPropertyInfo(ZITI_DRIVER_FEATURES, "seamless,nioProvider");
+      keystorePassword.description = "Ziti driver features required for the JDBC driver";
+      keystorePassword.required = true;
+
+      DriverPropertyInfo[] result = new DriverPropertyInfo[6];
+      result[0] = identityFile;
+      result[1] = keystoreFile;
+      result[2] = keystorePassword;
+      result[3] = driverUrlPattern;
+      result[4] = driverClassName;
+      result[5] = zitiFeatures;
+      
+      return result;
+    }
   }
 
   @Override
@@ -118,7 +147,8 @@ public class ZitiDriver implements java.sql.Driver {
 
   @Override
   public boolean jdbcCompliant() {
-    // The JDBC driver provided by the shim may be JDBC compliant, but this driver cannot know that for sure.
+    // The JDBC driver provided by the shim may be JDBC compliant, but this driver cannot know that for
+    // sure.
     // It is forced to return false to be compliant with the spec.
     return false;
   }
@@ -150,6 +180,7 @@ public class ZitiDriver implements java.sql.Driver {
   }
 
   private BaseZitiDriverShim registerShim(Properties info) throws ShimException {
+    System.out.println("Registering shim");
     if (!info.containsKey(ZITI_DRIVER_URL_PATTERN) || !info.containsKey(ZITI_DRIVER_CLASSNAME)) {
       throw new ShimException("No Ziti driver shim available");
     }
@@ -185,17 +216,17 @@ public class ZitiDriver implements java.sql.Driver {
       log.info("JDBC driver is configuring Ziti identities. Production applications should manage Ziti identities directly");
     }
 
-    
+
     // Check to see if NIO feature is required
-    if( !configuredShims.contains(shim) && requiresFeature(shim,nioProvider)) {
-      System.setProperty("java.nio.channels.spi.SelectorProvider","org.openziti.net.nio.ZitiSelectorProvider");
+    if (!configuredShims.contains(shim) && requiresFeature(shim, nioProvider)) {
+      System.setProperty("java.nio.channels.spi.SelectorProvider", "org.openziti.net.nio.ZitiSelectorProvider");
     }
 
     // TODO: General error handling
     if (info.containsKey(ZITI_JSON)) {
       log.finer(() -> String.format("Found identity file %s in connection properties.", info.getProperty(ZITI_JSON)));
 
-      Ziti.init(info.getProperty(ZITI_JSON), "".toCharArray(), requiresFeature(shim,seamless));
+      Ziti.init(info.getProperty(ZITI_JSON), "".toCharArray(), requiresFeature(shim, seamless));
       log.finer(() -> {
         StringBuilder sb = new StringBuilder("Current Ziti contexts: ");
         Ziti.getContexts().forEach(c -> sb.append("\t").append(c).append("\n"));
@@ -205,8 +236,8 @@ public class ZitiDriver implements java.sql.Driver {
       zitiConfigs.add(info.getProperty(ZITI_JSON));
     } else if (info.containsKey(ZITI_KEYSTORE)) {
 
-      log.finer(() -> String.format("Found keystore file %s in connection properties.",info.getProperty(ZITI_KEYSTORE)));
-      Ziti.init(info.getProperty(ZITI_KEYSTORE), info.getProperty(ZITI_KEYSTORE_PASSWORD).toCharArray(), requiresFeature(shim,seamless));
+      log.finer(() -> String.format("Found keystore file %s in connection properties.", info.getProperty(ZITI_KEYSTORE)));
+      Ziti.init(info.getProperty(ZITI_KEYSTORE), info.getProperty(ZITI_KEYSTORE_PASSWORD).toCharArray(), requiresFeature(shim, seamless));
       zitiConfigs.add(info.getProperty(ZITI_KEYSTORE));
     }
     log.fine("Ziti initialized");
@@ -216,7 +247,7 @@ public class ZitiDriver implements java.sql.Driver {
   protected static boolean requiresFeature(BaseZitiDriverShim shim, ZitiFeature feature) {
     return null != shim.getZitiFeatures() && shim.getZitiFeatures().contains(feature);
   }
-  
+
   protected void parseUrl(String url, Properties info) throws SQLException {
     int qPos = url.indexOf('?');
     if (qPos == -1) {
@@ -244,7 +275,7 @@ public class ZitiDriver implements java.sql.Driver {
       }
     }
   }
-  
+
   /** Little wrapper that lets us wrap exceptions found during shim init in lambdas */
   private static class ShimException extends RuntimeException {
     private static final long serialVersionUID = 1L;
@@ -252,6 +283,7 @@ public class ZitiDriver implements java.sql.Driver {
     ShimException(String message) {
       super(message);
     }
+
     ShimException(String message, Throwable cause) {
       super(message, cause);
     }

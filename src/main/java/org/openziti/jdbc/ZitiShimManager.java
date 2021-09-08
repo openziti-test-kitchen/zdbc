@@ -21,7 +21,6 @@ class ZitiShimManager {
     try {
       shims.add(new Postgresql());
     } catch (ReflectiveOperationException e) {
-      log.fine("Huh");
       log.fine("Postgres driver not detected, skipping Ziti driver shim");
     }
 
