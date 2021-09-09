@@ -43,6 +43,7 @@ class ZitiShimManager {
    * @throws ReflectiveOperationException if driverClassName does not exist or does not implement the java.jdbc.Driver interface
    */  
   public BaseZitiDriverShim registerShim(String urlPattern, String driverClassName, EnumSet<ZitiFeature> zitiFeatures) throws ReflectiveOperationException {
+    log.fine(() -> String.format("Registring shim, URL: %s, driver: %s, features: %s", urlPattern, driverClassName, zitiFeatures));
     BaseZitiDriverShim shim = new BaseZitiDriverShim(urlPattern, driverClassName, zitiFeatures);
     return registerShim(shim);
   }

@@ -180,7 +180,6 @@ public class ZitiDriver implements java.sql.Driver {
   }
 
   private BaseZitiDriverShim registerShim(Properties info) throws ShimException {
-    System.out.println("Registering shim");
     if (!info.containsKey(ZITI_DRIVER_URL_PATTERN) || !info.containsKey(ZITI_DRIVER_CLASSNAME)) {
       throw new ShimException("No Ziti driver shim available");
     }
