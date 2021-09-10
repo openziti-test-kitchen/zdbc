@@ -7,9 +7,9 @@ import org.openziti.jdbc.ZitiDriver.ZitiFeature;
 
 public class Postgresql extends BaseZitiDriverShim {
   public Postgresql() throws ReflectiveOperationException {
-    super("^zdbc:postgresql.*", "org.postgresql.Driver", EnumSet.of(ZitiFeature.seamless));
+    super("^zdbc:postgresql.*", "org.postgresql.Driver", EnumSet.noneOf(ZitiFeature.class));
   }
-  
+
   @Override
   public void configureDriverProperties(Properties props) {
     props.setProperty("socketFactory", "org.openziti.net.ZitiSocketFactory");
