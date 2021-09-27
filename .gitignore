@@ -1,11 +1,7 @@
-#################
-## Maven
-#################
-dependency-reduced-pom.xml
-.mvn/
-HELP.md
+### gradle ###
+.gradle
 target/
-!.mvn/wrapper/maven-wrapper.jar
+build/
 !**/src/main/**
 !**/src/test/**
 
@@ -30,7 +26,6 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 
 ### VS Code ###
 .vscode/
