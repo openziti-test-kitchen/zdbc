@@ -2,6 +2,7 @@
 .gradle
 target/
 build/
+bin/
 !**/src/main/**
 !**/src/test/**
 

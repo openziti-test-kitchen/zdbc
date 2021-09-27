@@ -62,8 +62,7 @@ ext {
 version = "${semver.info}"
 
 dependencies {
-	// Ziti
-  	implementation 'org.openziti:ziti:0.22.+'
+  	compileOnly 'org.openziti:ziti:0.22.+'
 }
 
 tasks.register('sourcesJar', Jar) {
