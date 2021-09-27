@@ -23,8 +23,6 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
-      - name: Show Info
-        run: ./gradlew :showInfo
       - name: Build with Gradle
         run: ./gradlew build assemble
       - name: Upload the jar to the release
