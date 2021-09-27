@@ -27,8 +27,11 @@ jobs:
         run: ./gradlew :showInfo
       - name: Build with Gradle
         run: ./gradlew build assemble
-      - name: Publish to GitHub Packages
-        run: ./gradlew publish --info
-        env:
-          USERNAME: ${{ github.actor }}
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload the jar to the release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/lib/*          
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
