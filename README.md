@@ -9,6 +9,19 @@ The goals of this project are:
 1.  Leave the JDBC drivers provided by the vendor alone.  This project does not include forks of any JDBC drivers.
 1.  Provide a way to connect developer tools to a database over a Ziti network.
 
+## Driver Features
+Each JDBC driver needs specific ziti features in order to work.  This table attempts to capture which each driver requires
+
+| Driver | Shim Included | Ziti Features | Notes |
+| ------ | :------------:| ------------- | ----- |
+| org.postgresql.Driver | Y | Socket Factory | Requires jdbc property socketFactory |
+| oracle.jdbc.OracleDriver | Y | NIO Provider | <ul><li>Tested with public and private autonomous databases</li><li>Requires the database host to be resolvable</li></ul> |
+| com.mysql.jdbc.Driver | Y | init with seamless mode | |
+| org.h2.Driver | N | init with seamless mode | Requires the database host to be resolvable |
+
+# How it works
+The zdbc driver registers with `java.sql.DriverManager` when the zdbc wrapper jar is included in the application.  The Ziti JDBC wrapper checks each database URL to see if it starts with `zdbc`.  If it does, then the wrapper accepts the connection request, configures Ziti,  configures the driver,  and then delegates to the driver to establish a database connection over the Ziti network fabric.
+
 # Example of integrating into developer tools
 ## Requirements
 1.  A Ziti network and database: <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
