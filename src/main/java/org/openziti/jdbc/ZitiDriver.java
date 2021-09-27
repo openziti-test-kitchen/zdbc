@@ -212,16 +212,16 @@ public class ZitiDriver implements java.sql.Driver {
     }
 
     if (info.containsKey(ZITI_JSON) || info.containsKey(ZITI_KEYSTORE)) {
-      log.info("JDBC driver is configuring Ziti identities. Production applications should manage Ziti identities directly");
+      log.info("Ziti JDBC wrapper is configuring Ziti identities. Production applications should manage Ziti identities directly");
     }
 
 
     // Check to see if NIO feature is required
     if (!configuredShims.contains(shim) && requiresFeature(shim, nioProvider)) {
+      log.info("Ziti JDBC wrapper is setting the system property 'java.nio.channels.spi.SelectorProvider' to 'org.openziti.net.nio.ZitiSelectorProvider'");
       System.setProperty("java.nio.channels.spi.SelectorProvider", "org.openziti.net.nio.ZitiSelectorProvider");
     }
 
-    // TODO: General error handling
     if (info.containsKey(ZITI_JSON)) {
       log.finer(() -> String.format("Found identity file %s in connection properties.", info.getProperty(ZITI_JSON)));
 
@@ -239,6 +239,12 @@ public class ZitiDriver implements java.sql.Driver {
       Ziti.init(info.getProperty(ZITI_KEYSTORE), info.getProperty(ZITI_KEYSTORE_PASSWORD).toCharArray(), requiresFeature(shim, seamless));
       zitiConfigs.add(info.getProperty(ZITI_KEYSTORE));
     }
+//
+//    if(!configuredShims.contains(shim) && requiresFeature(shim, seamless) && !Ziti.isSeamless()) {
+//      throw new ShimException(String.format("Ziti JDBC configuration error. JDBC driver %s requires ziti seamless mode, but it is not enabled",
+//          shim.getDelegate().getClass().getName()));
+//    }
+//
     log.fine("Ziti initialized");
     configuredShims.add(shim);
   }
