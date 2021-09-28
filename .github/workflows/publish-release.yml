@@ -24,7 +24,8 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build assemble
       - run: ls  ${{ runner.workspace }}/build/libs/
-      - run: find . -name *.jar
+      - run: ls  ${{ runner.workspace }}/build/libs/
+      - run: find ${{ runner.workspace }} -name *.jar
       - name: Upload the jar to the release
         uses: svenstaro/upload-release-action@v2
         with:
