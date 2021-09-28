@@ -1,11 +1,9 @@
 name: Publish Release
 
 on:
-  push:
-    branches:
-      - main
-  release:
-    types: [published]
+  create:
+    tags:
+     - '*'
 
 jobs:
   build:
@@ -25,6 +23,8 @@ jobs:
           cache: gradle
       - name: Build with Gradle
         run: ./gradlew build assemble
+      - run: ls  ${{ runner.workspace }}/build/libs/
+      - run: find . -name *.jar
       - name: Upload the jar to the release
         uses: svenstaro/upload-release-action@v2
         with:
