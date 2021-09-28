@@ -1,9 +1,8 @@
 name: Publish Release
 
 on:
-  create:
-    tags:
-      - '*'
+  release:
+    types: [published]
 
 jobs:
   build:
