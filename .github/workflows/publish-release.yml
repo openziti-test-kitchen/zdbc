@@ -1,9 +1,6 @@
 name: Publish Release
 
-on:  
-  push:
-    branches:
-      - main
+on:
   release:
     types: [published]
 
@@ -25,12 +22,11 @@ jobs:
           cache: gradle
       - name: Build with Gradle
         run: ./gradlew build assemble
-      - run: find ${{ runner.workspace }} -name *.jar
       - name: Upload the jar to the release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ runner.workspace }}/build/libs/*.jar
+          file: ${{ runner.workspace }}/zdbc/build/libs/*.jar
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
