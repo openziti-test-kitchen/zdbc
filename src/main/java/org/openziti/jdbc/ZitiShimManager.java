@@ -10,7 +10,7 @@ import org.openziti.jdbc.shim.Mysql;
 import org.openziti.jdbc.shim.Oracle;
 import org.openziti.jdbc.shim.Postgresql;
 
-class ZitiShimManager {
+public class ZitiShimManager {
   private static final Logger log = Logger.getLogger(ZitiShimManager.class.getName());
   
   private static Set<BaseZitiDriverShim> shims = new HashSet<>();
@@ -42,7 +42,7 @@ class ZitiShimManager {
    * 
    * @throws ReflectiveOperationException if driverClassName does not exist or does not implement the java.jdbc.Driver interface
    */  
-  public BaseZitiDriverShim registerShim(String urlPattern, String driverClassName, EnumSet<ZitiFeature> zitiFeatures) throws ReflectiveOperationException {
+  public static BaseZitiDriverShim registerShim(String urlPattern, String driverClassName, EnumSet<ZitiFeature> zitiFeatures) throws ReflectiveOperationException {
     log.fine(() -> String.format("Registring shim, URL: %s, driver: %s, features: %s", urlPattern, driverClassName, zitiFeatures));
     BaseZitiDriverShim shim = new BaseZitiDriverShim(urlPattern, driverClassName, zitiFeatures);
     return registerShim(shim);
@@ -51,12 +51,12 @@ class ZitiShimManager {
   /** 
    * Add a custom Ziti JDBC driver shim. This method will replace an existing shim registered with the same urlPattern.
    */ 
-  public BaseZitiDriverShim registerShim(BaseZitiDriverShim shim) throws ReflectiveOperationException {
+  public static BaseZitiDriverShim registerShim(BaseZitiDriverShim shim) throws ReflectiveOperationException {
     shims.add(shim);
     return shim;
   }
 
-  protected Optional<BaseZitiDriverShim> getShim(String url) {
+  protected static Optional<BaseZitiDriverShim> getShim(String url) {
     log.fine(() -> String.format("Looking for shim for url %s", url));
     Optional<BaseZitiDriverShim> result = shims.stream().filter(s -> s.acceptsURL(url) || s.acceptsURL(url)).findFirst();
     log.fine(() -> String.format("%s shim for url %s", (result.isPresent()?"Found":"Did not find"), url));
