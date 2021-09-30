@@ -34,8 +34,6 @@ public class ZitiDriver implements java.sql.Driver {
   public static final String ZITI_DRIVER_CLASSNAME = "zitiDriverClassname";
   public static final String ZITI_DRIVER_FEATURES = "zitiDriverFeatures";
 
-  private static ZitiShimManager mgr = new ZitiShimManager();
-
   public static enum ZitiFeature {
     seamless, nioProvider
   }
@@ -57,7 +55,7 @@ public class ZitiDriver implements java.sql.Driver {
     log.fine("Ziti driver is attempting to connect to " + url);
 
     // Throws a SQLException if a shim could not be found or configured
-    BaseZitiDriverShim shim = mgr.getShim(url).orElseGet(() -> registerShim(info));
+    BaseZitiDriverShim shim = ZitiShimManager.getShim(url).orElseGet(() -> registerShim(info));
 
     parseUrl(url, info);
     shim.configureDriverProperties(info);
@@ -92,7 +90,7 @@ public class ZitiDriver implements java.sql.Driver {
 
     try {
       // Throws a SQL Exception if a shim could not be found or created
-      BaseZitiDriverShim shim = mgr.getShim(url).orElseGet(() -> registerShim(info));
+      BaseZitiDriverShim shim = ZitiShimManager.getShim(url).orElseGet(() -> registerShim(info));
 
       String dbUrl = url.replaceFirst("zdbc", "jdbc");
 
@@ -195,7 +193,7 @@ public class ZitiDriver implements java.sql.Driver {
     }
 
     try {
-      return mgr.registerShim(
+      return ZitiShimManager.registerShim(
           info.getProperty(ZITI_DRIVER_URL_PATTERN),
           info.getProperty(ZITI_DRIVER_CLASSNAME),
           features);
