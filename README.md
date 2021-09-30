@@ -28,8 +28,8 @@ The zdbc driver registers with `java.sql.DriverManager` when the zdbc wrapper ja
 ## Requirements
 1.  A Ziti network and database: <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
 1.  Squirrel-Sql client: http://squirrel-sql.sourceforge.net/#installation
-1.  Ziti all-in-one (fat) jar: <insert link to Java SDK>
-1.  zdbc wrapper (this project): <insert link to jar>
+1.  Ziti java SDK full jar: <https://search.maven.org/search?q=g:org.openziti%20AND%20a:ziti%20AND%20%20l:full>
+1.  Zdbc wrapper (this project): <https://github.com/openziti-incubator/zdbc/tags>
 
 ## Step by Step
 1.  Configure a ziti network and postgres database following the cheatsheet <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
