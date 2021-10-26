@@ -15,5 +15,6 @@ public class Oracle extends BaseZitiDriverShim {
 	@Override
 	public void configureDriverProperties(Properties props) {
 		props.setProperty("oracle.jdbc.javaNetNio", "false");
+		props.setProperty("oracle.net.disableOob", "false");
 	}
 }
