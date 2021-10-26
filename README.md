@@ -15,7 +15,7 @@ Each JDBC driver needs specific ziti features in order to work.  This table atte
 | Driver | Shim Included | Ziti Features | Notes |
 | ------ | :------------:| ------------- | ----- |
 | org.postgresql.Driver | Y | Socket Factory | Requires jdbc property socketFactory |
-| oracle.jdbc.OracleDriver | Y | NIO Provider | <ul><li>Tested with public and private autonomous databases</li><li>Requires the database host to be resolvable (1)</li></ul> |
+| oracle.jdbc.OracleDriver | Y | init with seamless mode | <ul><li>The current Oracle shim does not support NIO or OOB. As such, the shim will set the following property values <ul><li>oracle.jdbc.javaNetNio=false</li><li>oracle.net.disableOob=false</li></ul></li><li>Tested with public and private autonomous databases</li><li>Requires the database host to be resolvable (1)</li></ul> |
 | com.mysql.jdbc.Driver | Y | init with seamless mode | |
 | org.h2.Driver | N | init with seamless mode | Requires the database host to be resolvable (1) |
 
