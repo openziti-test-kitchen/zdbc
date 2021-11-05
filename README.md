@@ -24,6 +24,12 @@ Each JDBC driver needs specific ziti features in order to work.  This table atte
 # How it works
 The zdbc driver registers with `java.sql.DriverManager` when the zdbc wrapper jar is included in the application.  The Ziti JDBC wrapper checks each database URL to see if it starts with `zdbc`.  If it does, then the wrapper accepts the connection request, configures Ziti,  configures the driver,  and then delegates to the driver to establish a database connection over the Ziti network fabric.
 
+# Your Ziti network identity
+The zdbc driver needs your ziti network identity to connect.  There are three ways to give your identity to the driver.
+1. PKCS12 keystore and password.  Provided via the JDBC properties `zitiKeystore` and `zitiKeystorePassword`
+1. Path to a `.json` file containing your ziti identity.  This is the file created during enrollment.  Provided via the JDBC property `zitiIdentityFile`
+1. A zipped and base64encoded string provided via the JDBC property `zitiIdentity`.  The zdbc jar provides a main method that can encode the json ziti identity file into this format.  This option is intended to be used for support tooling or business application deployments where you cannot write to the server file system.
+
 # Example of integrating into developer tools
 ## Requirements
 1.  A Ziti network and database: <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
