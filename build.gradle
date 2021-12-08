@@ -69,11 +69,17 @@ ext {
 version = "${semver.info}"
 
 dependencies {
-  	compileOnly 'org.openziti:ziti:0.23.+'
+   compileOnly 'org.openziti:ziti:+'
 }
 
 tasks.withType(PublishToMavenRepository).all {
     onlyIf { !semver.info.dirty }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.openziti.jdbc.CommandLine'
+    }
 }
 
 publishing {
