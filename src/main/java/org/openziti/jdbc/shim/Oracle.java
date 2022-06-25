@@ -9,7 +9,7 @@ import org.openziti.jdbc.BaseZitiDriverShim;
 public class Oracle extends BaseZitiDriverShim {
 
 	public Oracle() throws ReflectiveOperationException {
-		super("^zdbc:oracle:thin.*", "oracle.jdbc.OracleDriver", EnumSet.of(seamless));
+		super("^(zdbc|jdbc:ziti):oracle:thin.*", "oracle.jdbc.OracleDriver", EnumSet.of(seamless));
 	}
 
 	@Override

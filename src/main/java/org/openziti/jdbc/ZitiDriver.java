@@ -15,6 +15,8 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.EnumSet;
@@ -25,6 +27,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import org.openziti.Ziti;
+import org.openziti.ZitiContext;
+import org.openziti.api.Service;
 
 public class ZitiDriver implements java.sql.Driver {
   private static final Logger log = Logger.getLogger(ZitiDriver.class.getName());
@@ -40,6 +44,8 @@ public class ZitiDriver implements java.sql.Driver {
   public static final String ZITI_DRIVER_URL_PATTERN = "zitiDriverUrlPattern";
   public static final String ZITI_DRIVER_CLASSNAME = "zitiDriverClassname";
   public static final String ZITI_DRIVER_FEATURES = "zitiDriverFeatures";
+  public static final String ZITI_WAIT_FOR_SERVICE_NAME = "zitiWaitForService";
+  public static final String ZITI_WAIT_FOR_SERVICE_TIMEOUT = "zitiWaitForServiceTimeout";
 
   public static enum ZitiFeature {
     seamless, nioProvider
@@ -70,16 +76,28 @@ public class ZitiDriver implements java.sql.Driver {
     setupZiti(shim, info);
 
     // Replace zdbc with jdbc so shim drivers know how to connect
-    String dbUrl = url.replaceFirst("zdbc", "jdbc");
+    String dbUrl = toProviderUrl(url);
 
     return shim.getDelegate().connect(dbUrl, info);
   }
 
   @Override
   public boolean acceptsURL(String url) throws SQLException {
-    return null != url && url.startsWith("zdbc");
+    return null != url && (url.startsWith("zdbc") || url.startsWith("jdbc:ziti:"));
   }
 
+  private String toProviderUrl(String zdbcUrl) {
+    final String result;
+    if (zdbcUrl.startsWith("zdbc")) {
+      result = zdbcUrl.replaceFirst("zdbc","jdbc");
+    } else if (zdbcUrl.startsWith("jdbc:ziti")) {
+      result = zdbcUrl.replaceFirst("jdbc:ziti","jdbc");
+    } else {
+      result = zdbcUrl;
+    }
+
+    return result;
+  }
   @Override
   public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException {
 
@@ -103,8 +121,7 @@ public class ZitiDriver implements java.sql.Driver {
     try {
       // Throws a SQL Exception if a shim could not be found or created
       BaseZitiDriverShim shim = ZitiShimManager.getShim(url).orElseGet(() -> registerShim(info));
-
-      String dbUrl = url.replaceFirst("zdbc", "jdbc");
+      String dbUrl = toProviderUrl(url);
 
       DriverPropertyInfo[] props = shim.getDelegate().getPropertyInfo(dbUrl, info);
 
@@ -117,25 +134,19 @@ public class ZitiDriver implements java.sql.Driver {
 
       return result;
     } catch (ShimException e) {
-      // No shim could be found, and no shim could be registered. Return the basic properties to
-      // define a
-      // shim
+      // No shim could be found, and no shim could be registered. Return the basic properties to define a shim
 
-      log.fine(
-          "Ziti driver could not find a shim for url: " + url + ".  Returning basic properties.");
+      log.fine("Ziti driver could not find a shim for url: " + url + ".  Returning basic properties.");
 
-      DriverPropertyInfo driverUrlPattern =
-          new DriverPropertyInfo(ZITI_DRIVER_URL_PATTERN, "^zdbc:<database>.*");
+      DriverPropertyInfo driverUrlPattern = new DriverPropertyInfo(ZITI_DRIVER_URL_PATTERN, "^jdbc.ziti:<database>.*");
       identityFile.description = "Regular expression used to identify the jdbc URL for this driver";
       identityFile.required = true;
 
-      DriverPropertyInfo driverClassName =
-          new DriverPropertyInfo(ZITI_DRIVER_CLASSNAME, "org.jdbc.Driver");
+      DriverPropertyInfo driverClassName = new DriverPropertyInfo(ZITI_DRIVER_CLASSNAME, "org.jdbc.Driver");
       keystoreFile.description = "The JDBC driver to delegate to";
       keystoreFile.required = true;
 
-      DriverPropertyInfo zitiFeatures =
-          new DriverPropertyInfo(ZITI_DRIVER_FEATURES, "seamless,nioProvider");
+      DriverPropertyInfo zitiFeatures = new DriverPropertyInfo(ZITI_DRIVER_FEATURES, "seamless,nioProvider");
       keystorePassword.description = "Ziti driver features required for the JDBC driver";
       keystorePassword.required = true;
 
@@ -164,15 +175,13 @@ public class ZitiDriver implements java.sql.Driver {
   @Override
   public boolean jdbcCompliant() {
     // The JDBC driver provided by the shim may be JDBC compliant, but this driver cannot know that
-    // for
-    // sure.
+    // for sure.
     // It is forced to return false to be compliant with the spec.
     return false;
   }
 
   @Override
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -267,8 +276,9 @@ public class ZitiDriver implements java.sql.Driver {
       try (
           ByteArrayInputStream is = new ByteArrayInputStream(decoded);
           GZIPInputStream gz = new GZIPInputStream(is);) {
- 
+
         Ziti.init(toByteArray(gz), requiresFeature(shim, seamless));
+
         zitiConfigs.add(info.getProperty(ZITI_KEYSTORE));
 
       } catch (IOException ioe) {
@@ -282,9 +292,57 @@ public class ZitiDriver implements java.sql.Driver {
           "Ziti JDBC configuration error. JDBC driver %s requires ziti seamless mode, but it is not enabled",
           shim.getDelegate().getClass().getName()));
     }
-    
-    log.fine("Ziti initialized");
+
+    if (info.containsKey(ZITI_WAIT_FOR_SERVICE_NAME)) {
+      boolean found = checkForService(info.getProperty(ZITI_WAIT_FOR_SERVICE_NAME));
+
+      if (!found) {
+        if (info.containsKey(ZITI_WAIT_FOR_SERVICE_TIMEOUT)) {
+          Duration timeout;
+
+          try {
+            timeout = Duration.parse(info.getProperty(ZITI_WAIT_FOR_SERVICE_TIMEOUT));
+          } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("The property " + ZITI_WAIT_FOR_SERVICE_TIMEOUT + " must be parsable as a java Duration", e);
+          }
+
+          long startTime = System.currentTimeMillis();
+          while (!found && (System.currentTimeMillis() < startTime+timeout.toMillis())) {
+            try {
+              Thread.sleep(500);
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+              break;
+            }
+            found = checkForService(info.getProperty(ZITI_WAIT_FOR_SERVICE_NAME));
+            log.fine(() -> String.format("No Ziti contexts provide %s yet. Remaining timeout: %sms",
+                    info.getProperty(ZITI_WAIT_FOR_SERVICE_NAME), ((startTime + timeout.toMillis()) - System.currentTimeMillis())));
+          }
+        }
+      }
+
+      if (!found) {
+        throw new IllegalArgumentException("The Ziti service " + info.getProperty(ZITI_WAIT_FOR_SERVICE_NAME + " is not available in any Ziti context"));
+      }
+      
+      log.fine(() -> String.format("Found a Ziti context that provides %s, continuing with connection", info.getProperty(ZITI_WAIT_FOR_SERVICE_TIMEOUT)));
+    }
+
     configuredShims.add(shim);
+  }
+
+  private boolean checkForService(String serviceName) {
+    boolean result = false;
+    log.fine("Checking Ziti context for service " + serviceName);
+    for (ZitiContext c:Ziti.getContexts()) {
+      if (null != c.getService(serviceName)) {
+        log.fine("Found service with name " + serviceName );
+        result = true;
+        break;
+      }
+    }
+    
+    return result;
   }
 
   protected static byte[] toByteArray(InputStream is) throws IOException {

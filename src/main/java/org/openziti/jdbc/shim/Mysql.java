@@ -7,6 +7,6 @@ import org.openziti.jdbc.ZitiDriver.ZitiFeature;
 public class Mysql extends BaseZitiDriverShim {
 
   public Mysql() throws ReflectiveOperationException {
-    super("^zdbc:mysql.*", "com.mysql.cj.jdbc.Driver", EnumSet.of(ZitiFeature.seamless));
+    super("^(zdbc|jdbc:ziti):mysql.*", "com.mysql.cj.jdbc.Driver", EnumSet.of(ZitiFeature.seamless));
   }
 }

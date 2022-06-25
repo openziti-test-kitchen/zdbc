@@ -7,7 +7,7 @@ import org.openziti.jdbc.ZitiDriver.ZitiFeature;
 
 public class Postgresql extends BaseZitiDriverShim {
   public Postgresql() throws ReflectiveOperationException {
-    super("^zdbc:postgresql.*", "org.postgresql.Driver", EnumSet.noneOf(ZitiFeature.class));
+    super("^(zdbc|jdbc:ziti):postgresql.*", "org.postgresql.Driver", EnumSet.noneOf(ZitiFeature.class));
   }
 
   @Override
