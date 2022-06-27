@@ -16,7 +16,7 @@ The docker compose network has four containers for this example:
 * **OpenZiti Tunneler:** This is the exit point of the OpenZiti network.  Its job is to bridge the gap between the OpenZiti network and the Postgresql server
 * **Postgresql server:** The database server. This container is dark in that it does not expose any ports on your pc
 
-See the [OpenZiti Documentation] (https://openziti.github.io/ziti/overview.html) for more information on the Ziti components
+See the [OpenZiti Documentation](https://openziti.github.io/ziti/overview.html) for more information on the Ziti components
 
 ## Postgresql Setup
 The posgresql server is bootstrapped from postgres-setup.sh.
