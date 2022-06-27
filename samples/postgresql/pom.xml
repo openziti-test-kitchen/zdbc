@@ -22,16 +22,44 @@
 
 		<!-- ZDBC wrapper jar -->
 		<dependency>
-			<groupId>org.openziti.jdbc</groupId>
-			<artifactId>ziti-jdbc-wrapper</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			 <groupId>org.openziti</groupId>
+			  <artifactId>zdbc</artifactId>
+			  <version>0.1.10-dirty-SNAPSHOT</version>
 		</dependency>
 
-		<!-- Ziti java sdk -->
+		<!-- Ziti SDK -->
 		<dependency>
 			<groupId>org.openziti</groupId>
 			<artifactId>ziti</artifactId>
-			<version>0.22.5-SNAPSHOT</version>
+			<version>0.23.13</version>
 		</dependency>
+
+        <!-- Optional logging dependencies -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.22</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.22</version>
+		</dependency>
+
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<mainClass>org.openziti.jdbc.PostgresqlExample</mainClass>
+					<arguments>
+						<argument>network/databaseClient.json</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
