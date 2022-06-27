@@ -22,7 +22,9 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
+
 }
 
 
@@ -36,7 +38,7 @@ ext {
 configurations {
    testCompile
 }
-   
+
 group = "org.openziti"
 
 
@@ -60,7 +62,6 @@ semver {
     }
 }
 
-
 ext {
     gitCommit = semver.info.shortCommit
     gitBranch = semver.info.branch.name
@@ -69,7 +70,10 @@ ext {
 version = "${semver.info}"
 
 dependencies {
-   compileOnly 'org.openziti:ziti:+'
+    implementation 'org.openziti:ziti:0.23.13'
+    testImplementation 'org.postgresql:postgresql:42.2.23'
+    testImplementation "org.slf4j:slf4j-api:1.7.22"
+    testImplementation "org.slf4j:slf4j-simple:1.7.22"
 }
 
 tasks.withType(PublishToMavenRepository).all {
@@ -89,5 +93,4 @@ publishing {
         }
     }
 }
-
 apply from: rootProject.file('publish.gradle')
