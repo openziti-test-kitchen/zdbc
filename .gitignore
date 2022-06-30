@@ -30,3 +30,9 @@ bin/
 
 ### VS Code ###
 .vscode/
+
+### Sample artifacts **
+samples/postgresql/network/client.json
+samples/postgresql/network/databaseClient.json
+samples/postgresql/network/tunnel/
+

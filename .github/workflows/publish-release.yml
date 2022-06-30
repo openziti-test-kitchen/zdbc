@@ -20,6 +20,8 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: Show Info
+        run: ./gradlew :showInfo
       - name: Build with Gradle
         run: ./gradlew build assemble
       - name: Upload the jar to the release
@@ -30,3 +32,11 @@ jobs:
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
+      - name: Publish to Sonatype
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
+        run: ./gradlew -i publishToSonatype
+

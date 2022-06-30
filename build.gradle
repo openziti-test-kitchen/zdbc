@@ -80,6 +80,16 @@ tasks.withType(PublishToMavenRepository).all {
     onlyIf { !semver.info.dirty }
 }
 
+tasks.register('sourcesJar', Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+artifacts {
+    archives(sourcesJar)
+}
+
+
 jar {
     manifest {
         attributes 'Main-Class': 'org.openziti.jdbc.CommandLine'
@@ -93,4 +103,15 @@ publishing {
         }
     }
 }
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+
 apply from: rootProject.file('publish.gradle')
+
