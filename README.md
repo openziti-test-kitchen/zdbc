@@ -32,17 +32,17 @@ The zdbc driver needs your ziti network identity to connect.  There are three wa
 
 # Example of integrating into developer tools
 ## Requirements
-1.  A Ziti network and database: <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
-1.  Squirrel-Sql client: http://squirrel-sql.sourceforge.net/#installation
-1.  Ziti java SDK full jar: <https://search.maven.org/search?q=g:org.openziti%20AND%20a:ziti%20AND%20%20l:full>
-1.  Zdbc wrapper (this project): <https://github.com/openziti-incubator/zdbc/tags>
+1.  A Ziti network and database: (https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md) 
+1.  Squirrel-Sql client: (http://squirrel-sql.sourceforge.net/#installation)
+1.  Ziti java SDK full jar: (https://search.maven.org/search?q=g:org.openziti)
+1.  Zdbc wrapper (this project): (https://github.com/openziti-incubator/zdbc/tags)
 
 ## Step by Step
 1.  Configure a ziti network and postgres database following the cheatsheet <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
 1.  Copy the Ziti all-in-one jar into the Squirrel-Sql `lib` folder
 
 > ls $SQUIRREL_HOME\lib | grep ziti <br>
-  ziti-0.22.5-all.jar
+  ziti-0.23.13-all.jar
 
 1.  Start Squirrel-Sql
 1.  Configure the Squirrel-Sql PostgreSQL driver
@@ -64,9 +64,5 @@ The zdbc driver needs your ziti network identity to connect.  There are three wa
     <br>![Set Property](/images/Alias-SetProp.png)
 
 # Example of integrating into a Java application
-## Requirements
-1.  A Ziti network and database: <https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md> 
-
-## Step by Step
-1.  Configure a ziti network and postgres database following the cheatsheet https://github.com/openziti/ziti-sdk-jvm/blob/main/samples/jdbc-postgres/cheatsheet.md>
-1.  Run the included `samples/postgresql` project, providing the name of the java-identity.json file created during the previous step.
+This repository includes a Postgresql example using the JDBC DriverManager to connect to a dark database.
+Full instructions are in the sample [README.md](samples/postgresql/README.md)
