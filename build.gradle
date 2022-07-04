@@ -73,7 +73,7 @@ dependencies {
     implementation 'org.openziti:ziti:0.23.13'
     testImplementation 'org.postgresql:postgresql:42.2.23'
     testImplementation "org.slf4j:slf4j-api:1.7.22"
-    testImplementation "org.slf4j:slf4j-simple:1.7.22"
+    testImplementation "org.slf4j:slf4j-simple:1.7.36"
 }
 
 tasks.withType(PublishToMavenRepository).all {
