@@ -37,7 +37,7 @@ ziti edge -i spring-jpa create service demo-service --configs demo-service-confi
 
 echo Creating database service
 ziti edge -i spring-jpa create config private-postgres-intercept.v1 intercept.v1 '{"protocols":["tcp"],"addresses":["private-postgres-server.demo"], "portRanges":[{"low":5432, "high":5432}]}'
-ziti edge -i spring-jpa create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"private-postgres-db","port":5432 }'
+ziti edge -i spring-jpa create config private-postgres-host.v1 host.v1 '{"protocol":"tcp", "address":"postgres-db","port":5432 }'
 ziti edge -i spring-jpa create service private-postgres --configs private-postgres-intercept.v1,private-postgres-host.v1 -a "private-postgres-services"
 
 echo Creating identity service policies

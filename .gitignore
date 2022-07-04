@@ -21,6 +21,10 @@ bin/
 *.iml
 *.ipr
 
+### Include the copyright files ###
+!/.idea/copyright/
+!/.idea/copyright/*
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -31,8 +35,13 @@ bin/
 ### VS Code ###
 .vscode/
 
-### Sample artifacts **
+### Sample artifacts ###
 samples/postgresql/network/client.json
 samples/postgresql/network/databaseClient.json
 samples/postgresql/network/tunnel/
+
+samples/spring-jpa/network/*.json
+samples/spring-jpa/network/simplified-docker-compose.yml
+samples/spring-jpa/network/.env
+samples/spring-jpa/network/default.env
 

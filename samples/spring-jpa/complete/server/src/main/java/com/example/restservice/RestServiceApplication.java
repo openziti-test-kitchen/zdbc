@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication (
-  scanBasePackageClasses = {ZitiTomcatCustomizer.class,GreetingController.class}
+  scanBasePackageClasses = {ZitiTomcatCustomizer.class,RestServiceApplication.class}
 )
 public class RestServiceApplication {
 
