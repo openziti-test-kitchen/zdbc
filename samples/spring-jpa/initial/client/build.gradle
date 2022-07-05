@@ -16,8 +16,9 @@ repositories {
 
 dependencies {
 	implementation('org.openziti:ziti:0.23.12')
-	implementation 'org.slf4j:slf4j-api:1.7.35'
-	implementation 'org.slf4j:slf4j-simple:1.7.35'
+	implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+	implementation 'org.slf4j:slf4j-api:1.7.36'
+	implementation 'org.slf4j:slf4j-simple:1.7.36'
 }
 
 task runWithJavaExec(type: JavaExec) {

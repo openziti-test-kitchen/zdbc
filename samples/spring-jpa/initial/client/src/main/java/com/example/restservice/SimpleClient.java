@@ -1,77 +1,108 @@
 package com.example.restservice;
 
+import okhttp3.*;
 import org.openziti.Ziti;
 import org.openziti.ZitiConnection;
 import org.openziti.ZitiContext;
+import org.openziti.api.InterceptAddress;
+import org.openziti.api.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleClient {
-  private static final Logger log = LoggerFactory.getLogger( SimpleClient.class );
+    private static final Logger log = LoggerFactory.getLogger( SimpleClient.class );
 
-  private static void usageAndExit() {
-    System.out.println("Usage: SimpleClient <-i identityFile> <-s serviceName>");
-    System.exit(1);
-  }
+    private static void usageAndExit() {
+        System.out.println("Usage: SimpleClient <-i identityFile> <-s serviceName> <-g greetingData> <-l>");
+        System.out.println("\t-i identityFile\tYour Ziti network identity file");
+        System.out.println("\t-s serviceName \tThe name of the greeting service to hit");
+        System.out.println("\t-g greetingData\tThe greeting data to send to the service");
+        System.out.println("\t-l             \tList greetings sent so far");
 
-  public static void main(String[] args) {
-    String identityFile = "../../network/client.json";
-    String serviceName = "demo-service";
+        System.exit(1);
+    }
 
-    for (int i = 0; i < args.length; i++) {
-      if ("-i".equals(args[i])) {
-        if (i < args.length-1) {
-          identityFile = args[++i];
-        } else {
-          usageAndExit();
+    public static void main(String[] args) throws Exception {
+        String identityFile = "../../network/client.json";
+        String serviceName = "demo-service";
+        String url = "http://example.web:8080/greetings";
+        String greetingData = null;
+        boolean listGreetings = false;
+
+        for (int i = 0; i < args.length; i++) {
+            if ("-i".equals(args[i])) {
+                if (i < args.length-1) {
+                    identityFile = args[++i];
+                } else {
+                    usageAndExit();
+                }
+            }
+
+            if ("-s".equals(args[i])) {
+                if (i < args.length-1) {
+                    serviceName = args[++i];
+                } else {
+                    usageAndExit();
+                }
+            }
+
+            if ("-g".equals(args[i])) {
+                if (i < args.length-1) {
+                    greetingData = args[++i];
+                } else {
+                    usageAndExit();
+                }
+            }
+
+            if("-l".equals(args[i])) {
+                listGreetings = true;
+            }
         }
-      }
-      if ("-s".equals(args[i])) {
-        if (i < args.length-1) {
-          serviceName = args[++i];
-        } else {
-          usageAndExit();
+
+        ZitiContext zitiContext = null;
+        try {
+            zitiContext = Ziti.newContext(identityFile, "".toCharArray());
+
+            Service svc = zitiContext.getService(serviceName,10000);
+            if (svc == null) {
+                throw new IllegalArgumentException(String.format("Service %s is not available on the OpenZiti network",serviceName));
+            }
+
+            OkHttpClient clt = newHttpClient();
+
+            if(null != greetingData) {
+                sendGreeting(clt, url, greetingData);
+            }
+
+            if(listGreetings) {
+                listGreetings(clt, url);
+            }
+
+
+        } finally {
+            Thread.sleep(1000);
+            if( null != zitiContext ) zitiContext.destroy();
         }
-      }
+
     }
 
-    hitZitiService(identityFile, serviceName);
-  }
-  private static void hitZitiService(String identityFile, String serviceName) {
-
-    ZitiContext zitiContext = null;
-    try {
-      zitiContext = Ziti.newContext(identityFile, "".toCharArray());
-
-      if (null == zitiContext.getService(serviceName,10000)) {
-        throw new IllegalArgumentException(String.format("Service %s is not available on the OpenZiti network",serviceName));
-      }
-
-      log.info("Dialing service");
-      ZitiConnection conn = zitiContext.dial(serviceName);
-
-      String request = "GET /greeting?name=MyName HTTP/1.1\n" +
-        "Accept: */*\n" +
-        "Host: example.web\n" +
-        "\n";
-
-      log.info("Sending request");
-      conn.write(request.getBytes(StandardCharsets.UTF_8));
-
-      byte[] buff = new byte[1024];
-      int i;
-
-      log.info("Reading response");
-      while (0 < (i = conn.read(buff,0, buff.length))) {
-        log.info("=== " + new String(buff, 0, i) );
-      }
-    } catch (Throwable t) {
-      log.error("OpenZiti network test failed", t);
+    private static OkHttpClient newHttpClient() throws Exception {
+        throw new RuntimeException("Not Yet Implemented");
     }
-    finally {
-      if( null != zitiContext ) zitiContext.destroy();
-    }
-  }
+
+    private static void listGreetings(OkHttpClient clt, String url) throws Exception {
+        throw new RuntimeException("Not Yet Implemented");    }
+
+    private static void sendGreeting(OkHttpClient clt, String url, String greetingData) throws Exception{
+        throw new RuntimeException("Not Yet Implemented");    }
 }

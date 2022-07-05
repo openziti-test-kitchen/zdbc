@@ -1,12 +1,23 @@
 package com.example.restservice;
 
+import okhttp3.*;
 import org.openziti.Ziti;
 import org.openziti.ZitiConnection;
 import org.openziti.ZitiContext;
+import org.openziti.api.InterceptAddress;
+import org.openziti.api.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleClient {
   private static final Logger log = LoggerFactory.getLogger( SimpleClient.class );
@@ -21,9 +32,10 @@ public class SimpleClient {
     System.exit(1);
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     String identityFile = "../../network/client.json";
     String serviceName = "demo-service";
+    String url = "http://example.web:8080/greetings";
     String greetingData = null;
     boolean listGreetings = false;
 
@@ -57,90 +69,77 @@ public class SimpleClient {
       }
     }
 
-    if(null != greetingData) {
-      sendGreeting(identityFile, serviceName, greetingData);
-    }
-
-    if(listGreetings) {
-      listGreetings(identityFile, serviceName);
-    }
-  }
-
-  private static void listGreetings(String identityFile, String serviceName) {
     ZitiContext zitiContext = null;
     try {
       zitiContext = Ziti.newContext(identityFile, "".toCharArray());
 
-      if (null == zitiContext.getService(serviceName,10000)) {
+      Service svc = zitiContext.getService(serviceName,10000);
+      if (svc == null) {
         throw new IllegalArgumentException(String.format("Service %s is not available on the OpenZiti network",serviceName));
       }
 
-      log.info("Dialing service");
-      ZitiConnection conn = zitiContext.dial(serviceName);
+      OkHttpClient clt = newHttpClient();
 
-      String request = "GET /greetings HTTP/1.1\n" +
-              "Accept: */*\n" +
-              "Host: example.web\n" +
-              "\n";
-
-      log.info("Sending request");
-      conn.write(request.getBytes(StandardCharsets.UTF_8));
-
-      byte[] buff = new byte[1024];
-      int i;
-
-      log.info("Reading response");
-      while (0 < (i = conn.read(buff,0, buff.length))) {
-        log.info("=== " + new String(buff, 0, i) );
+      if(null != greetingData) {
+        sendGreeting(clt, url, greetingData);
       }
-      conn.close();
-    } catch (Throwable t) {
-      log.error("OpenZiti network test failed", t);
-    }
-    finally {
+
+      if(listGreetings) {
+        listGreetings(clt, url);
+      }
+
+
+    } finally {
+      Thread.sleep(1000);
       if( null != zitiContext ) zitiContext.destroy();
     }
+
   }
 
-  private static void sendGreeting(String identityFile, String serviceName, String greetingData) {
+  private static OkHttpClient newHttpClient() throws Exception {
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
-    ZitiContext zitiContext = null;
-    try {
-      zitiContext = Ziti.newContext(identityFile, "".toCharArray());
+    tmf.init(ks);
 
-      if (null == zitiContext.getService(serviceName,10000)) {
-        throw new IllegalArgumentException(String.format("Service %s is not available on the OpenZiti network",serviceName));
-      }
+    X509TrustManager tm = (X509TrustManager)tmf.getTrustManagers()[0];
 
-      log.info("Dialing service");
-      ZitiConnection conn = zitiContext.dial(serviceName);
+    OkHttpClient clt = new OkHttpClient.Builder()
+            .socketFactory(Ziti.getSocketFactory())
+            .sslSocketFactory(Ziti.getSSLSocketFactory(), tm)
+            .dns(hostname -> {
+              InetAddress address = Ziti.getDNSResolver().resolve(hostname);
+              if (address == null) {
+                address = InetAddress.getByName(hostname);
+              }
+              return (address != null) ? Collections.singletonList(address) : Collections.emptyList();
+            })
+            .callTimeout(5, TimeUnit.MINUTES)
+            .build();
+    return clt;
+  }
 
-      String requestBody = String.format("{\"content\":\"%s\"}", greetingData);
-      System.out.println("Sending " + requestBody);
-      String request = "POST /greetings HTTP/1.1\n" +
-        "Host: example.web\n" +
-        "Content-Length:" + requestBody.getBytes(StandardCharsets.UTF_8).length + "\n" +
-        "Content-Type: application/json\n" +
-        "\n";
+  private static void listGreetings(OkHttpClient clt, String url) throws Exception {
+    Request req = new Request.Builder()
+            .get()
+            .url(url)
+            .build();
 
-      log.info("Sending request");
-      conn.write(request.getBytes(StandardCharsets.UTF_8));
-      conn.write(requestBody.getBytes(StandardCharsets.UTF_8));
+    log.info("Dialing service");
+    Response resp = clt.newCall(req).execute();
+    log.info("Response Headers: {}", resp.headers());
+    log.info("Response Body: {}", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(resp.body().bytes())));
+  }
 
-      byte[] buff = new byte[1024];
-      int i;
+  private static void sendGreeting(OkHttpClient clt, String url, String greetingData) throws Exception{
+    Request req = new Request.Builder()
+            .post(RequestBody.create(String.format("{\"content\":\"%s\"}", greetingData), MediaType.parse("application/json") ))
+            .addHeader("Content-Type","application/json")
+            .url(url)
+            .build();
 
-      log.info("Reading response");
-      while (0 < (i = conn.read(buff,0, buff.length))) {
-        log.info("=== " + new String(buff, 0, i) );
-      }
-      conn.close();
-
-    } catch (Throwable t) {
-      log.error("OpenZiti network test failed", t);
-    }
-    finally {
-      if( null != zitiContext ) zitiContext.destroy();
-    }
+    Response resp = clt.newCall(req).execute();
+    log.info("Response Headers: {}", resp.headers());
+    log.info("Response Body: {}", StandardCharsets.UTF_8.decode(ByteBuffer.wrap(resp.body().bytes())));
   }
 }

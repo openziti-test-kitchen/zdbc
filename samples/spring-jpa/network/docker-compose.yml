@@ -15,6 +15,30 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
+  example-network-init-container:
+    image: "${ZITI_IMAGE}:${ZITI_VERSION}"
+    depends_on:
+      - ziti-controller
+    environment:
+      - ZITI_CONTROLLER_RAWNAME="${ZITI_CONTROLLER_RAWNAME}"
+      - ZITI_EDGE_CONTROLLER_RAWNAME="${ZITI_EDGE_CONTROLLER_RAWNAME}"
+    env_file:
+      - ./.env
+    networks:
+      zitiblue:
+        aliases:
+          - ziti-edge-controller-init-container
+      zitired:
+        aliases:
+          - ziti-edge-controller-init-container
+    volumes:
+      - ziti-fs:/openziti
+      - .:/openziti/network-setup
+    entrypoint: 
+      - "/openziti/scripts/run-with-ziti-cli.sh"
+    command: 
+      - "/openziti/network-setup/network-setup.sh"
+
   ziti-tunneler:
     image: 'netfoundry/ziti-tunnel:latest'
     depends_on:
