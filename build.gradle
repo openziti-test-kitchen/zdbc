@@ -70,7 +70,7 @@ ext {
 version = "${semver.info}"
 
 dependencies {
-    implementation 'org.openziti:ziti:0.23.13'
+    implementation 'org.openziti:ziti:0.23.15'
     testImplementation 'org.postgresql:postgresql:42.4.0'
     testImplementation "org.slf4j:slf4j-api:1.7.36"
     testImplementation "org.slf4j:slf4j-simple:1.7.36"
