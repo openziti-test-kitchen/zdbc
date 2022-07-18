@@ -1,11 +1,9 @@
 # This repository is obsolete!
 
 > **Warning**
-> **This repository is obsolete and is no longer maintained.**
-
-ZDBC has moved out of the test kitchen incubator and into the OpenZiti Java SDK. 
-
-The new repository is available at https://github.com/openziti/ziti-sdk-jvm/tree/main/ziti-jdbc
+> This repository is obsolete and is no longer maintained!
+> ZDBC has moved out of the test kitchen incubator and into the OpenZiti Java SDK. 
+> The new home for this code is https://github.com/openziti/ziti-sdk-jvm/tree/main/ziti-jdbc
 
 # zdbc
 A repository to provide jdbc driver configurations for access to databases via ziti
