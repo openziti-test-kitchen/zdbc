@@ -1,7 +1,10 @@
 # ZDBC Has Moved!
 <p>
+<span style="float:left">
 <img src="images/ZiggyParties.png" style="float:left; vertical-align: baseline" width="120" height="120"/>
-<div style="float:right">ZDBC has graduated from the test kitchen and is now a module in the NetFoundry Java SDK. The source code is now available here: https://github.com/openziti/ziti-sdk-jvm/tree/main/ziti-jdbc</div>
+</span>
+<span style="flat:right">
+<p style="float:right">ZDBC has graduated from the test kitchen and is now a module in the NetFoundry Java SDK. The source code is now available here: https://github.com/openziti/ziti-sdk-jvm/tree/main/ziti-jdbc</p>
 </p>
 
 ## Where can I get the new jar file?
